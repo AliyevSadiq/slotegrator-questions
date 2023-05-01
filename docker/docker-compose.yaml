@@ -1,0 +1,38 @@
+version: '3'
+services:
+  nginx:
+    image: nginx:alpine
+    container_name: app-nginx
+    ports:
+      - "${NGINX_PORT}:8090"
+      - "${NGINX_SSL_PORT}:443"
+    volumes:
+      - ./:/var/www
+      - ./etc/nginx/conf.d:/etc/nginx/conf.d
+    networks:
+      - app-network
+  db:
+    platform: linux/x86_64
+    image: mysql:8.0
+    container_name: app-db
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./etc/infrastructure/mysql/my.cnf:/etc/mysql/my.cnf
+      - ./etc/database/base.sql:/docker-entrypoint-initdb.d/base.sql
+    networks:
+      - app-network
+  php:
+    image: php:7.4-fpm
+    container_name: app-php
+    volumes:
+      - ./:/var/www
+    networks:
+      - app-network
+networks:
+  app-network:
